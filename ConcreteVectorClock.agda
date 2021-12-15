@@ -31,7 +31,7 @@ private
 
 
 postulate
--- axiom
+-- axiom: if two VCs are from the same process, then either one is less than the other or they are the same VC.
   processTotalOrder : (vc vc′ : VC p) → vc < vc′ ⊎ vc′ < vc ⊎ vc ≡ vc′
   
 
