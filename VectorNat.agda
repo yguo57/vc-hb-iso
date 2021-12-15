@@ -26,13 +26,10 @@ data _≤_ : {l : ℕ } → (Vec ℕ l) → (Vec ℕ  l) →  Set where
     []≤[] : [] ≤ []
     ∷≤∷ : (a ≤ᵇ b) ≡ true → v ≤ v′ → (a ∷  v) ≤ ( b ∷  v′)
 
--- data _<_ : {l : ℕ } → (Vec ℕ l) → (Vec ℕ l) →  Set where
---         t<t :  (a ≤ᵇ b) ≡ true → v < v′ → (a ∷ v) < ( b ∷ v′)
---         h<h :  (a <ᵇ b) ≡ true → v ≤ v′ → (a ∷ v) < ( b ∷ v′)
-
 data _<_ : {l : ℕ } → (Vec ℕ l) → (Vec ℕ l) →  Set where
-        t<t :  (a ≤ᵇ b) ≡ true →  _<_ {l} v v′ → _<_ {suc l} (a ∷ v) ( b ∷ v′)
-        h<h :  (a <ᵇ b) ≡ true → _≤_ {l} v  v′ → _<_ {suc l} (a ∷ v) ( b ∷ v′)
+       t<t :  (a ≤ᵇ b) ≡ true → v < v′ → (a ∷ v) < ( b ∷ v′)
+       h<h :  (a <ᵇ b) ≡ true → v ≤ v′ → (a ∷ v) < ( b ∷ v′)
+
 
 -- helper functions
 fillZero : (l : ℕ)  → Vec ℕ l 
@@ -59,6 +56,8 @@ postulate
     ≤ᵇ→not>ᵇ :  {bl : Bool} → (a ≤ᵇ b) ≡ bl → (b <ᵇ a) ≡ not bl
     ≤ᵇtrue,≥ᵇtrue→≡ : (a ≤ᵇ b) ≡ true → (b ≤ᵇ a) ≡ true → a ≡ b
     ≤ᵇ-reflexive : (a ≤ᵇ a) ≡ true
+    ≤ᵇ→≤ : (a ≤ᵇ b) ≡ true → a Nat.≤ b
+    ≤→≤ᵇ : a Nat.≤ b → (a ≤ᵇ b) ≡ true 
 
 <ᵇ-irreflexive : (a <ᵇ b) ≡ true →  (b <ᵇ a) ≡ true → ⊥
 <ᵇ-irreflexive {a} {b} eq₁ eq₂ with contra  ← ≤ᵇ→not>ᵇ {a} {b} (<ᵇ→≤ᵇ {a} {b} eq₁ ) | b <ᵇ a
@@ -79,7 +78,6 @@ a<ᵇsa≡true {suc n} =  a<ᵇsa≡true {n}
 a≤ᵇa≡true : (a ≤ᵇ a) ≡ true
 a≤ᵇa≡true {zero} = refl
 a≤ᵇa≡true {suc n} = a<ᵇsa≡true {n}
-
 
 -- lemmas about _<_ and _≤_
 
@@ -108,12 +106,12 @@ v≤v {_} {(x ∷ xs)} = ∷≤∷ (a≤ᵇa≡true {x}) v≤v
 ≤,<→< (∷≤∷ {a} {b} a≤ᵇb  v≤v′  ) (t<t {b} {c} b≤ᵇc  v′<v″) = t<t (≤ᵇ-transitive {a} {b} {c} a≤ᵇb  b≤ᵇc) ( ≤,<→< v≤v′ v′<v″)
 ≤,<→< (∷≤∷ {a} {b} a≤ᵇb  v≤v′) (h<h {b} {c} b<ᵇc  v′≤v″) = h<h (≤ᵇ,<ᵇ→<ᵇ {a} {b} {c} a≤ᵇb b<ᵇc) ( ≤-transitive v≤v′ v′≤v″)
 
-<→¬≤ :  v < v′ → v′ ≤ v → ⊥ 
+<→¬≤ :  v < v′ → ¬ v′ ≤ v 
 <→¬≤ {v = x ∷ xs} {v′ = y ∷ ys}  (h<h x<y _) (∷≤∷ y≤x _ ) rewrite (≤ᵇ→not>ᵇ {y}{x} y≤x) with () ← x<y 
 <→¬≤ {v = x ∷ xs} {v′ = y ∷ ys}  (t<t _ xs<ys) (∷≤∷ _ ys≤xs ) = <→¬≤ xs<ys ys≤xs
 
-<-irreflexive :  v < v′ → v′ < v → ⊥ 
-<-irreflexive v<v′ v′<v =  <→¬≤ v′<v (<→≤ v<v′)
+<-asymmetric :  v < v′ → ¬ v′ < v 
+<-asymmetric v<v′ v′<v =  <→¬≤ v′<v (<→≤ v<v′)
 
 
 <→≢ : v < v′ → v ≢ v′
@@ -195,20 +193,20 @@ v≤max[v,v′] {_} {x ∷ xs} {y ∷ ys}  with  (x ≤ᵇ_) y | inspect (x ≤�
 ...                                 | false | [ x≤ᵇy≡false ] = ∷≤∷ ( ≤ᵇ-reflexive {x} ) (v≤max[v,v′] {v = xs } {v′ = ys})
 
 v≤max[v′,v] : v ≤ max v′ v
-v≤max[v′,v] {_} {[]} {[]} = []≤[]
-v≤max[v′,v] {_} {x ∷ xs} {y ∷ ys}  with  (y ≤ᵇ_) x | inspect ( y ≤ᵇ_) x
-...                                 | true | [ y≤ᵇx≡true ]  = ∷≤∷ (≤ᵇ-reflexive {x} ) (  v≤max[v′,v] {v = xs} {v′ = ys})
-...                                 | false | [ y≤ᵇx≡false ] = ∷≤∷ ( <ᵇ→≤ᵇ  {x} {y} (≤ᵇ→not>ᵇ {y} {x}  y≤ᵇx≡false)) ( ( v≤max[v′,v] {v = xs} {v′ = ys}))
-
+v≤max[v′,v]  {v = v} {v′ = v′} rewrite sym (max-comm {v = v} {v′}) = v≤max[v,v′] {v = v} {v′ = v′}
 
 -- lemmas about lookup
+1+v[p]≡incAt[i,v][p] : 1 + (lookup v i)  ≡ (lookup (incAt i v ) i)
+1+v[p]≡incAt[i,v][p] {v = v@(x ∷ xs) } {zero} with lookup v zero 
+... | zero   = refl
+... | suc x  =  refl
+1+v[p]≡incAt[i,v][p] {v = v@(x ∷ xs) } {suc i} = 1+v[p]≡incAt[i,v][p] {v = xs} {i}
+
 
 v[p]<incAt[i,v][p] : (lookup v i)  Nat.< (lookup (incAt i v ) i)
-v[p]<incAt[i,v][p] {v = v@(x ∷ xs) } {zero} with lookup v zero |  lookup (incAt zero v) zero
-... | zero | zero = z≤n
-... | zero | suc y = s≤s ≤-refl
-... | suc x | y =  ≤-refl
-v[p]<incAt[i,v][p] {v = v@(x ∷ xs) } {suc i} = v[p]<incAt[i,v][p] {v = xs} {i}
+v[p]<incAt[i,v][p] {v = v} {i}
+  rewrite sym (1+v[p]≡incAt[i,v][p] {v = v} {i})
+  = s≤s (≤-reflexive refl)
 
 0<incAt[i,v][p] : 0  Nat.< (lookup (incAt i v ) i)
 0<incAt[i,v][p] {i = zero} {x ∷ xs} = s≤s z≤n
@@ -221,5 +219,30 @@ p≢q→incAt[q,v][p]≡v[p] {suc l} {zero} {suc q} {x ∷ xs} _ = refl
 p≢q→incAt[q,v][p]≡v[p] {suc l} {suc p} {zero}  {x ∷ xs} _ =  refl
 p≢q→incAt[q,v][p]≡v[p] {suc l} {suc p} {suc q} {x ∷ v} sp≢sq = p≢q→incAt[q,v][p]≡v[p] {l} {p} {q}  (λ p≡q →  sp≢sq (cong suc p≡q))
 
-v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] : (lookup v i)  ≤ᵇ (lookup v′ i) →  lookup (max v v′ ) i ≡ lookup v′
-v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] = ?
+
+
+v≤v′→v[p]≤v′[p] : v ≤ v′ → lookup v i Nat.≤ lookup v′ i
+v≤v′→v[p]≤v′[p] {v = x ∷ xs} {y ∷ ys} {zero} (∷≤∷ x≤ᵇy _ ) = ≤ᵇ→≤  x≤ᵇy
+v≤v′→v[p]≤v′[p] {v = x ∷ xs} {y ∷ ys} {suc i} (∷≤∷ _  xs≤ys ) =  v≤v′→v[p]≤v′[p] {v = xs} {ys} {i} xs≤ys
+
+v[p]≤max[v,v′][i] : (lookup v i) Nat.≤ (lookup (max v v′) i)
+v[p]≤max[v,v′][i] {v = v} { v′ = v′} = v≤v′→v[p]≤v′[p] (v≤max[v,v′] {v = v} {v′ = v′} )
+
+v[p]≤max[v′,v][i] : (lookup v i) Nat.≤ (lookup (max v′ v) i)
+v[p]≤max[v′,v][i] {v = v} {v′ = v′} rewrite sym (max-comm {v = v} {v′}) = v[p]≤max[v,v′][i] {v = v} {v′ = v′}
+
+v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] : (lookup v i  ≤ᵇ lookup v′ i) ≡ true →  lookup (max v v′ ) i ≡ lookup v′ i
+v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] {v = x ∷ xs} {zero} {y ∷ ys } v[p]≤ᵇv′[p] with x ≤ᵇ y
+... | true  = refl 
+v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p]  {v = x ∷ xs} {suc p}  {y ∷ ys } v[p]≤ᵇv′[p] with x ≤ᵇ y
+... | false = v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] {v = xs} {p} {ys} v[p]≤ᵇv′[p] 
+... | true = v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] {v = xs} {p} {ys} v[p]≤ᵇv′[p] 
+
+
+v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] : (lookup v i  ≤ᵇ lookup v′ i ) ≡ false →  lookup (max v v′ ) i ≡ lookup v i
+v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] {v = x ∷ xs} {zero} {y ∷ ys } v[p]≤ᵇv′[p] with x ≤ᵇ y
+... | false  = refl 
+v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] {v = x ∷ xs} {suc p}  {y ∷ ys } v[p]≤ᵇv′[p] with x ≤ᵇ y
+... | false = v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] {v = xs} {p} {ys} v[p]≤ᵇv′[p] 
+... | true = v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] {v = xs} {p} {ys} v[p]≤ᵇv′[p] 
+
