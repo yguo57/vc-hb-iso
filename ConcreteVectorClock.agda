@@ -129,8 +129,8 @@ lemma2 {p} {q} {vc} {merge {q = r} vc′ vc″ } p≢q  v[p]≤v′[p]
 
 
 
-<ᶜ→< :  {vc : VC p} { vc′ : VC q}  → vc <ᶜ vc′ → (vc < vc′) 
-<ᶜ→< {p} {q} {vc} {vc′} (v<ᶜv  v<′v′) with p Fin.≟ q
+<ᶜ→< : vc <ᶜ vc′ → (vc < vc′) 
+<ᶜ→<  {p} {vc} {q} {vc′} (v<ᶜv  v<′v′) with p Fin.≟ q
 ... | false because ofⁿ  p≢q  = lemma2 p≢q  ( v≤v′→v[i]≤v′[i] (<→≤  v<′v′))
 ... | true because  ofʸ p≡q rewrite p≡q
       with lemma1  ( v≤v′→v[i]≤v′[i]  (<→≤  v<′v′))
