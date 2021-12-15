@@ -122,9 +122,6 @@ v≤v {_} {(x ∷ xs)} = ∷≤∷ (a≤ᵇa≡true {x}) v≤v
 
 
 -- lemmas about fillZero
-fillZero-least : ¬  v < fillZero l  
-fillZero-least (t<t _ t) = fillZero-least t
-
 
 fillZero[l][p]≡0 :  lookup (fillZero l) i ≡ 0
 fillZero[l][p]≡0 {suc l} {zero} = refl
@@ -132,29 +129,10 @@ fillZero[l][p]≡0 {suc l} {suc i} = fillZero[l][p]≡0 {l} {i}
 
 
 --lemmas about incAt
-incAt-inv : incAt i v ≡ incAt i v′ → v ≡ v′
-incAt-inv {i = zero} {v = x ∷ v} {v′ = y ∷ v′} eq =  cong₂ _∷_ x≡y v≡v′ 
-  where
-    x≡y = cong pred (cong head eq)
-    v≡v′ = cong tail eq
-incAt-inv {i = suc i} {v = x ∷ v} {v′ = y  ∷ v′} eq = cong₂ _∷_ x≡y v≡v′
- where
-    x≡y = cong head eq
-    v≡v′ = incAt-inv {i = i} {v = v} {v′ = v′} (cong tail eq) 
-
 v<incAt[i,v] : v < incAt i v
 v<incAt[i,v] {_} {(x ∷ xs)} {zero} = h<h (a<ᵇsa≡true {x}) v≤v
 v<incAt[i,v] {_} {(x ∷ xs)}{(suc n)} = t<t (a≤ᵇa≡true {x}) v<incAt[i,v]
 
-≤-inv-incAt :  incAt i v ≤ incAt i v′ → v ≤ v′
-≤-inv-incAt {i = zero} {x ∷ v} {y ∷ v′} (∷≤∷ sx≤sy v≤v′) = ∷≤∷ (≤ᵇ-inv-suc {x} {y} sx≤sy)  v≤v′
-≤-inv-incAt {i = suc i} {x ∷ v} {y ∷ v′} (∷≤∷ sx≤sy v≤v′) = ∷≤∷ sx≤sy (≤-inv-incAt v≤v′)
-
-<-inv-incAt :  incAt i v < incAt i v′ → v < v′
-<-inv-incAt {i = zero} {v = x ∷ v} {v′ = y ∷ v′} (t<t sx≤sy v<v′) = t<t (≤ᵇ-inv-suc {x} {y} sx≤sy) v<v′ 
-<-inv-incAt {i = zero} {v = x ∷ v} {v′ = y ∷ v′} (h<h sx<sy v≤v′) =  h<h (<ᵇ-inv-suc {x} {y} sx<sy) v≤v′ 
-<-inv-incAt {i = suc i} {v = x ∷ v} {v′ = y ∷ v′} (t<t x≤y v<v′) = t<t x≤y (<-inv-incAt v<v′)
-<-inv-incAt {i = suc i} {v = x ∷ v} {v′ = y ∷ v′} (h<h x<y v≤v′) = h<h x<y (≤-inv-incAt v≤v′)
 
 
 -- lemmas about max
@@ -174,17 +152,6 @@ max-comm {v = x ∷ v} {v′ = y ∷ v′}
   where
       exp : ∀ {n} {x : Set n} → true ≡ false → x
       exp ()
-max-absorptionˡ : v ≤ v′ → v′ ≡ max v v′
-max-absorptionˡ {v = []} {v′ = []} []≤[] = refl
-max-absorptionˡ {_} {x ∷ xs} {y ∷ ys} (∷≤∷ x≤ᵇy≡true xs≤ys)  
-      with true ← x ≤ᵇ y   
-      rewrite sym (max-absorptionˡ xs≤ys) = refl
-
-
-max-absorptionʳ : v ≤ v′ → v′ ≡ max v′ v
-max-absorptionʳ {v = v} {v′ = v′}  v≤v′ rewrite sym (max-comm {v = v} {v′ = v′}) = max-absorptionˡ v≤v′
-
-
 
 v≤max[v,v′] : v ≤ max v v′
 v≤max[v,v′] {_} {[]} {[]} = []≤[]

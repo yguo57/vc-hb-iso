@@ -28,27 +28,10 @@ private
     vc″ : VC r
     h : List⁺ (VC p)
  
--- -- guarantees a correct total order event history of a process
--- data Process : (p : Pid) → List⁺ (VC p) → Set where
---  initProc : Process p NonEmpty.[ init ]
---  tickProc :  Process p h →  Process p  (tick (NonEmpty.head h) ∷⁺ h)
---  mergeProc :    Process p h →  Process p  (merge vc (NonEmpty.head h) ∷⁺ h)
 
--- data Execution : Pid  →  Set where
---   emptyExec : Execution zero
---   addProc : {n : ℕ} {ls: suc n < suc l} → Process (fromℕ< n ls) h → Execution (fromℕ< n ls) → Execution (suc n)
-
--- data _follows_ : (VC p) → (VC p) → Set where
---   tickSuc : (tick vc) follows vc 
---   mergeSuc : (merge vc vc′) follows vc′
---   transSuc : vc′ follows vc → vc″ follows vc′ → vc″ follows vc
-
-
-
--- _∈⁺_ : {A : Set} (a : A) → List⁺ A → Set
--- _∈⁺_ a l = a ∈ (NonEmpty.toList l)
 
 postulate
+-- axiom
   processTotalOrder : (vc vc′ : VC p) → vc < vc′ ⊎ vc′ < vc ⊎ vc ≡ vc′
   
 
@@ -58,7 +41,7 @@ concrete {p} (tick vc) = incAt p (concrete vc)
 concrete  {p} (merge vc vc′)  = incAt p (max (concrete vc) (concrete vc′))
 
 
--- every concrete vc equals some vector incremented at one index
+-- every concrete vc has an incremented index 
 ∃v[concrete[vc]≡incAt[v,p]] : { vc : VC p} → ∃[ v ] concrete vc ≡ incAt p v
 ∃v[concrete[vc]≡incAt[v,p]] {vc = init} =    fillZero (suc l) , refl
 ∃v[concrete[vc]≡incAt[v,p]] {vc = tick vc} =  (concrete vc) , refl
@@ -86,32 +69,12 @@ vc<ᶜmerge[vc′,vc] {vc′ = vc′}  =  v<ᶜv  (≤,<→< (v≤max[v′,v] {v
 <ᶜ-transitive  vc1<ᶜvc2 vc2<ᶜvc3 = v<ᶜv  (<-transitive  (<ᶜ→<′  vc1<ᶜvc2) ( <ᶜ→<′ vc2<ᶜvc3))
 
 
-p-merge≡tickʳ : {vc vc′ : VC p } →  ((lookup (concrete vc) p ) ≤ᵇ (lookup (concrete vc′) p)) ≡ true → lookup (concrete (tick vc′)) p  ≡ lookup (concrete (merge vc vc′)) p
-p-merge≡tickʳ  {p} {vc} {vc′} v[p]≤ᵇv′[p]
-  rewrite sym (1+v[i]≡incAt[i,v][i] {v = concrete vc′} {i = p} )
-  rewrite sym (1+v[i]≡incAt[i,v][i] {v = max (concrete vc) (concrete vc′)} {i = p} )
-  = cong (suc) (sym (v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i] {v = concrete vc} {p} {concrete vc′} v[p]≤ᵇv′[p]))
-
-  
-merge≡tickʳ  : {vc vc′ : VC p } →  vc <ᶜ vc′ → concrete (tick vc′) ≡ concrete (merge vc′ vc)
-merge≡tickʳ {vc = vc} {vc′ = vc′} vc<ᶜvc′ 
-  with  v<ᶜv  concrete[vc]<′concrete[vc′] ← vc<ᶜvc′ 
-  rewrite sym(max-absorptionʳ (<→≤ concrete[vc]<′concrete[vc′])) = refl
-
   
 <→<ᶜ : (vc < vc′) → (vc <ᶜ vc′)
 <→<ᶜ vc<tick[vc] = vc<ᶜtick[vc]
 <→<ᶜ vc<merge[vc,vc′] = vc<ᶜmerge[vc,vc′]
 <→<ᶜ vc<merge[vc′,vc] = vc<ᶜmerge[vc′,vc]
 <→<ᶜ (transitive  {vc′ = vc′} x x₁) = <ᶜ-transitive {vc′ = vc′} (<→<ᶜ x) (<→<ᶜ x₁)
-
-
-
-
-
-
-
-
 
 
 
@@ -162,8 +125,6 @@ lemma2 {p} {q} {vc} {merge {q = r} vc′ vc″ } p≢q  v[p]≤v′[p]
             with lemma1 {vc = vc} {vc′ = vc′} v[p]≤v′[p]
 ...         | inj₁ vc<vc′ = transitive vc<vc′ vc<merge[vc,vc′]
 ...         | inj₂ vc≡vc′  rewrite vc≡vc′ =  vc<merge[vc,vc′]
-
-
 
 
 
