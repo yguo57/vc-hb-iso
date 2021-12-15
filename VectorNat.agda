@@ -196,53 +196,53 @@ v≤max[v′,v] : v ≤ max v′ v
 v≤max[v′,v]  {v = v} {v′ = v′} rewrite sym (max-comm {v = v} {v′}) = v≤max[v,v′] {v = v} {v′ = v′}
 
 -- lemmas about lookup
-1+v[p]≡incAt[i,v][p] : 1 + (lookup v i)  ≡ (lookup (incAt i v ) i)
-1+v[p]≡incAt[i,v][p] {v = v@(x ∷ xs) } {zero} with lookup v zero 
+1+v[i]≡incAt[i,v][i] : 1 + (lookup v i)  ≡ (lookup (incAt i v ) i)
+1+v[i]≡incAt[i,v][i] {v = v@(x ∷ xs) } {zero} with lookup v zero 
 ... | zero   = refl
 ... | suc x  =  refl
-1+v[p]≡incAt[i,v][p] {v = v@(x ∷ xs) } {suc i} = 1+v[p]≡incAt[i,v][p] {v = xs} {i}
+1+v[i]≡incAt[i,v][i] {v = v@(x ∷ xs) } {suc i} = 1+v[i]≡incAt[i,v][i] {v = xs} {i}
 
 
-v[p]<incAt[i,v][p] : (lookup v i)  Nat.< (lookup (incAt i v ) i)
-v[p]<incAt[i,v][p] {v = v} {i}
-  rewrite sym (1+v[p]≡incAt[i,v][p] {v = v} {i})
+v[i]<incAt[i,v][i] : (lookup v i)  Nat.< (lookup (incAt i v ) i)
+v[i]<incAt[i,v][i] {v = v} {i}
+  rewrite sym (1+v[i]≡incAt[i,v][i] {v = v} {i})
   = s≤s (≤-reflexive refl)
 
-0<incAt[i,v][p] : 0  Nat.< (lookup (incAt i v ) i)
-0<incAt[i,v][p] {i = zero} {x ∷ xs} = s≤s z≤n
-0<incAt[i,v][p] {i = suc i} {x ∷ xs} = 0<incAt[i,v][p] {i = i} {xs}
+0<incAt[i,v][i] : 0  Nat.< (lookup (incAt i v ) i)
+0<incAt[i,v][i] {i = zero} {x ∷ xs} = s≤s z≤n
+0<incAt[i,v][i] {i = suc i} {x ∷ xs} = 0<incAt[i,v][i] {i = i} {xs}
 
 
-p≢q→incAt[q,v][p]≡v[p] : i ≢ i′ →  lookup (incAt i′ v) i ≡ lookup v i
-p≢q→incAt[q,v][p]≡v[p] {suc l} {zero} {zero} p≢q with () ←  p≢q refl
-p≢q→incAt[q,v][p]≡v[p] {suc l} {zero} {suc q} {x ∷ xs} _ = refl
-p≢q→incAt[q,v][p]≡v[p] {suc l} {suc p} {zero}  {x ∷ xs} _ =  refl
-p≢q→incAt[q,v][p]≡v[p] {suc l} {suc p} {suc q} {x ∷ v} sp≢sq = p≢q→incAt[q,v][p]≡v[p] {l} {p} {q}  (λ p≡q →  sp≢sq (cong suc p≡q))
+i≢i′→incAt[i′,v][i]≡v[i] : i ≢ i′ →  lookup (incAt i′ v) i ≡ lookup v i
+i≢i′→incAt[i′,v][i]≡v[i]{suc l} {zero} {zero} p≢q with () ←  p≢q refl
+i≢i′→incAt[i′,v][i]≡v[i] {suc l} {zero} {suc i′} {x ∷ xs} _ = refl
+i≢i′→incAt[i′,v][i]≡v[i] {suc l} {suc i} {zero}  {x ∷ xs} _ =  refl
+i≢i′→incAt[i′,v][i]≡v[i] {suc l} {suc i} {suc i′} {x ∷ v} si≢si′ = i≢i′→incAt[i′,v][i]≡v[i] {l} {i} {i′}  (λ i≡i′ →  si≢si′  (cong suc i≡i′))
 
 
 
-v≤v′→v[p]≤v′[p] : v ≤ v′ → lookup v i Nat.≤ lookup v′ i
-v≤v′→v[p]≤v′[p] {v = x ∷ xs} {y ∷ ys} {zero} (∷≤∷ x≤ᵇy _ ) = ≤ᵇ→≤  x≤ᵇy
-v≤v′→v[p]≤v′[p] {v = x ∷ xs} {y ∷ ys} {suc i} (∷≤∷ _  xs≤ys ) =  v≤v′→v[p]≤v′[p] {v = xs} {ys} {i} xs≤ys
+v≤v′→v[i]≤v′[i] : v ≤ v′ → lookup v i Nat.≤ lookup v′ i
+v≤v′→v[i]≤v′[i] {v = x ∷ xs} {y ∷ ys} {zero} (∷≤∷ x≤ᵇy _ ) = ≤ᵇ→≤  x≤ᵇy
+v≤v′→v[i]≤v′[i] {v = x ∷ xs} {y ∷ ys} {suc i} (∷≤∷ _  xs≤ys ) =  v≤v′→v[i]≤v′[i] {v = xs} {ys} {i} xs≤ys
 
-v[p]≤max[v,v′][i] : (lookup v i) Nat.≤ (lookup (max v v′) i)
-v[p]≤max[v,v′][i] {v = v} { v′ = v′} = v≤v′→v[p]≤v′[p] (v≤max[v,v′] {v = v} {v′ = v′} )
+v[i]≤max[v,v′][i] : (lookup v i) Nat.≤ (lookup (max v v′) i)
+v[i]≤max[v,v′][i] {v = v} { v′ = v′} = v≤v′→v[i]≤v′[i] (v≤max[v,v′] {v = v} {v′ = v′} )
 
-v[p]≤max[v′,v][i] : (lookup v i) Nat.≤ (lookup (max v′ v) i)
-v[p]≤max[v′,v][i] {v = v} {v′ = v′} rewrite sym (max-comm {v = v} {v′}) = v[p]≤max[v,v′][i] {v = v} {v′ = v′}
+v[i]≤max[v′,v][i] : (lookup v i) Nat.≤ (lookup (max v′ v) i)
+v[i]≤max[v′,v][i] {v = v} {v′ = v′} rewrite sym (max-comm {v = v} {v′}) = v[i]≤max[v,v′][i] {v = v} {v′ = v′}
 
-v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] : (lookup v i  ≤ᵇ lookup v′ i) ≡ true →  lookup (max v v′ ) i ≡ lookup v′ i
-v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] {v = x ∷ xs} {zero} {y ∷ ys } v[p]≤ᵇv′[p] with x ≤ᵇ y
+v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i] : (lookup v i  ≤ᵇ lookup v′ i) ≡ true →  lookup (max v v′ ) i ≡ lookup v′ i
+v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i]  {v = x ∷ xs} {zero} {y ∷ ys } _ with x ≤ᵇ y
 ... | true  = refl 
-v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p]  {v = x ∷ xs} {suc p}  {y ∷ ys } v[p]≤ᵇv′[p] with x ≤ᵇ y
-... | false = v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] {v = xs} {p} {ys} v[p]≤ᵇv′[p] 
-... | true = v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] {v = xs} {p} {ys} v[p]≤ᵇv′[p] 
+v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i]   {v = x ∷ xs} {suc i}  {y ∷ ys } v[i]≤ᵇv′[i] with x ≤ᵇ y
+... | false = v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i]  {v = xs} {i} {ys} v[i]≤ᵇv′[i]
+... | true = v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i]  {v = xs} {i} {ys} v[i]≤ᵇv′[i]
 
 
-v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] : (lookup v i  ≤ᵇ lookup v′ i ) ≡ false →  lookup (max v v′ ) i ≡ lookup v i
-v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] {v = x ∷ xs} {zero} {y ∷ ys } v[p]≤ᵇv′[p] with x ≤ᵇ y
+v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i] : (lookup v i  ≤ᵇ lookup v′ i ) ≡ false →  lookup (max v v′ ) i ≡ lookup v i
+v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i]  {v = x ∷ xs} {zero} {y ∷ ys } _ with x ≤ᵇ y
 ... | false  = refl 
-v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] {v = x ∷ xs} {suc p}  {y ∷ ys } v[p]≤ᵇv′[p] with x ≤ᵇ y
-... | false = v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] {v = xs} {p} {ys} v[p]≤ᵇv′[p] 
-... | true = v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] {v = xs} {p} {ys} v[p]≤ᵇv′[p] 
+v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i]  {v = x ∷ xs} {suc i}  {y ∷ ys } v[i]≤ᵇv′[i] with x ≤ᵇ y
+... | false = v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i]  {v = xs} {i} {ys} v[i]≤ᵇv′[i]
+... | true = v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i]  {v = xs} {i} {ys} v[i]≤ᵇv′[i]
 

@@ -12,7 +12,7 @@ open import Data.List.NonEmpty as NonEmpty using (_∷⁺_;List⁺;toList)
 open import Data.Bool using (true;false)
 open import Relation.Nullary using (Dec; _because_ ; ofⁿ; ofʸ;¬_ )
 
-module ConcreteVectorClock2 (l : ℕ) where
+module ConcreteVectorClock (l : ℕ) where
 
     
 Pid = Fin (suc l)
@@ -88,9 +88,9 @@ vc<ᶜmerge[vc′,vc] {vc′ = vc′}  =  v<ᶜv  (≤,<→< (v≤max[v′,v] {v
 
 p-merge≡tickʳ : {vc vc′ : VC p } →  ((lookup (concrete vc) p ) ≤ᵇ (lookup (concrete vc′) p)) ≡ true → lookup (concrete (tick vc′)) p  ≡ lookup (concrete (merge vc vc′)) p
 p-merge≡tickʳ  {p} {vc} {vc′} v[p]≤ᵇv′[p]
-  rewrite sym (1+v[p]≡incAt[i,v][p] {v = concrete vc′} {i = p} )
-  rewrite sym (1+v[p]≡incAt[i,v][p] {v = max (concrete vc) (concrete vc′)} {i = p} )
-  = cong (suc) (sym (v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] {v = concrete vc} {p} {concrete vc′} v[p]≤ᵇv′[p]))
+  rewrite sym (1+v[i]≡incAt[i,v][i] {v = concrete vc′} {i = p} )
+  rewrite sym (1+v[i]≡incAt[i,v][i] {v = max (concrete vc) (concrete vc′)} {i = p} )
+  = cong (suc) (sym (v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i] {v = concrete vc} {p} {concrete vc′} v[p]≤ᵇv′[p]))
 
   
 merge≡tickʳ  : {vc vc′ : VC p } →  vc <ᶜ vc′ → concrete (tick vc′) ≡ concrete (merge vc′ vc)
@@ -117,15 +117,15 @@ merge≡tickʳ {vc = vc} {vc′ = vc′} vc<ᶜvc′
 
 lemma1a  :   {vc : VC p} {vc′ : VC q} → vc < vc′  →  (lookup (concrete vc) q) Nat.< (lookup (concrete vc′) q)
 lemma1a {p} {q} {vc} {tick vc}  vc<tick[vc]
-  rewrite sym (1+v[p]≡incAt[i,v][p] {v = concrete vc} {i = q})
+  rewrite sym (1+v[i]≡incAt[i,v][i] {v = concrete vc} {i = q})
  = NatProp.≤-refl
 lemma1a  {p} {q} {vc} {merge vc vc′} vc<merge[vc,vc′]
-  rewrite sym (1+v[p]≡incAt[i,v][p] {v = max (concrete vc) (concrete vc′) } {i = q} )
-  = s≤s (v[p]≤max[v,v′][i] {v = concrete vc} {q} {concrete vc′})
+  rewrite sym (1+v[i]≡incAt[i,v][i] {v = max (concrete vc) (concrete vc′) } {i = q} )
+  = s≤s (v[i]≤max[v,v′][i] {v = concrete vc} {q} {concrete vc′})
 lemma1a  {p} {q} {vc} {merge vc′ vc} vc<merge[vc′,vc]
-  rewrite sym (1+v[p]≡incAt[i,v][p] {v = max (concrete vc′) (concrete vc) } {i = q} )
-  = s≤s (v[p]≤max[v′,v][i] {v = concrete vc} {q} {concrete vc′})
-lemma1a  {p} {q} {vc} {vc″} (transitive x y) = NatProp.<-transʳ (v≤v′→v[p]≤v′[p] (<→≤ (<ᶜ→<′ (<→<ᶜ x)))) (lemma1a y)
+  rewrite sym (1+v[i]≡incAt[i,v][i] {v = max (concrete vc′) (concrete vc) } {i = q} )
+  = s≤s (v[i]≤max[v′,v][i] {v = concrete vc} {q} {concrete vc′})
+lemma1a  {p} {q} {vc} {vc″} (transitive x y) = NatProp.<-transʳ (v≤v′→v[i]≤v′[i] (<→≤ (<ᶜ→<′ (<→<ᶜ x)))) (lemma1a y)
 
 
 lemma1 : {vc vc′ : VC p}   →  (lookup (concrete vc) p)  ≤ⁿ (lookup (concrete vc′) p) →  vc < vc′ ⊎ vc ≡  vc′ 
@@ -138,26 +138,26 @@ lemma1 {p} {vc} {vc′} v[p]≤v′[p]  with processTotalOrder vc vc′
 lemma2 : {vc : VC p} {vc′ : VC q}  → p ≢ q → (lookup (concrete vc) p)  ≤ⁿ (lookup (concrete vc′) p) →  vc < vc′
 lemma2 {zero} {zero} {vc} {vc′}  p≢q v[p]≤v′[p]  with () ← p≢q refl
 lemma2 {p} {q} {vc} {init}  p≢q v[p]≤v′[p]
-  rewrite p≢q→incAt[q,v][p]≡v[p] {v = fillZero (suc l)}  p≢q 
+  rewrite i≢i′→incAt[i′,v][i]≡v[i] {v = fillZero (suc l)}  p≢q 
   rewrite fillZero[l][p]≡0 {suc l} {p}
   rewrite proj₂ (∃v[concrete[vc]≡incAt[v,p]] {p} {vc})
-  with () ← (≤⇒≯  v[p]≤v′[p]) (0<incAt[i,v][p] {suc l} {p} { proj₁ (∃v[concrete[vc]≡incAt[v,p]] {p} {vc})})
+  with () ← (≤⇒≯  v[p]≤v′[p]) (0<incAt[i,v][i] {suc l} {p} { proj₁ (∃v[concrete[vc]≡incAt[v,p]] {p} {vc})})
 lemma2 {p} {q} {vc} {tick vc′} p≢q v[p]≤v′[p]
-  rewrite p≢q→incAt[q,v][p]≡v[p] {v = concrete vc′}  p≢q 
+  rewrite i≢i′→incAt[i′,v][i]≡v[i] {v = concrete vc′}  p≢q 
   =   transitive (lemma2 p≢q  v[p]≤v′[p])  vc<tick[vc] 
 lemma2 {p} {q} {vc} {merge {q = r} vc′ vc″ } p≢q  v[p]≤v′[p]
-  rewrite p≢q→incAt[q,v][p]≡v[p] {v = max (concrete vc′) (concrete vc″)}  p≢q
+  rewrite i≢i′→incAt[i′,v][i]≡v[i] {v = max (concrete vc′) (concrete vc″)}  p≢q
   with (lookup (concrete vc′) p)  ≤ᵇ (lookup (concrete vc″) p) | inspect ((lookup (concrete vc′) p)  ≤ᵇ_) (lookup (concrete vc″) p) 
 ... | true | [ v[p]≤ᵇv′[p] ] 
-      rewrite v[p]≤ᵇv′[p]→max[v,v′][p]≡v′[p] {v = concrete vc′} {p} {concrete vc″} v[p]≤ᵇv′[p]
+      rewrite v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i] {v = concrete vc′} {p} {concrete vc″} v[p]≤ᵇv′[p]
       =  transitive (lemma2 p≢q  v[p]≤v′[p])  vc<merge[vc′,vc]
 ... | false | [ v[p]≰ᵇv′[p] ]
         with  p Fin.≟ r
 ...     | false because  ofⁿ  p≢r
-          rewrite v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] {v = concrete vc′} {p} {concrete vc″} v[p]≰ᵇv′[p]
+          rewrite v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i] {v = concrete vc′} {p} {concrete vc″} v[p]≰ᵇv′[p]
           = transitive (lemma2 p≢r v[p]≤v′[p])  vc<merge[vc,vc′]
 ...     | true because   ofʸ p≡r
-          rewrite v[p]≰ᵇv′[p]→max[v,v′][p]≡v[p] {v = concrete vc′} {p} {concrete vc″} v[p]≰ᵇv′[p]
+          rewrite  v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i]  {v = concrete vc′} {p} {concrete vc″} v[p]≰ᵇv′[p]
           rewrite  sym p≡r
             with lemma1 {vc = vc} {vc′ = vc′} v[p]≤v′[p]
 ...         | inj₁ vc<vc′ = transitive vc<vc′ vc<merge[vc,vc′]
@@ -170,8 +170,8 @@ lemma2 {p} {q} {vc} {merge {q = r} vc′ vc″ } p≢q  v[p]≤v′[p]
 
 <ᶜ→< :  {vc : VC p} { vc′ : VC q}  → vc <ᶜ vc′ → (vc < vc′) 
 <ᶜ→< {p} {q} {vc} {vc′} (v<ᶜv  v<′v′) with p Fin.≟ q
-... | false because ofⁿ  p≢q  = lemma2 p≢q  ( v≤v′→v[p]≤v′[p] (<→≤  v<′v′))
+... | false because ofⁿ  p≢q  = lemma2 p≢q  ( v≤v′→v[i]≤v′[i] (<→≤  v<′v′))
 ... | true because  ofʸ p≡q rewrite p≡q
-      with lemma1  ( v≤v′→v[p]≤v′[p] (<→≤  v<′v′))
+      with lemma1  ( v≤v′→v[i]≤v′[i]  (<→≤  v<′v′))
 ...   | inj₁ vc<vc′ = vc<vc′
 ...   | inj₂ vc≡vc′  with () ← (<→≢ v<′v′)(cong concrete vc≡vc′)
