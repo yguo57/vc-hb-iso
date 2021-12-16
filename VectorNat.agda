@@ -1,7 +1,7 @@
 module VectorNat where
 open import Data.Vec hiding (init)
 open import Data.Nat as Nat hiding (_<_;_≤_) 
-open import Data.Nat.Properties
+open import Data.Nat.Properties as NatProp
 open import Data.Fin  hiding (_≺_ ;_+_ ;_<_;_≤_;_≟_;pred;_≤?_)
 open import Data.Bool hiding (_<_;_≤_;_≟_;_≤?_)
 open import Data.Product
@@ -10,6 +10,7 @@ open import Data.Empty using (⊥)
 open import Data.Unit using (⊤; tt)
 open import Relation.Nullary.Decidable using (⌊_⌋)
 open import Relation.Binary.PropositionalEquality using (_≡_;_≢_;refl;inspect;[_];subst;sym;cong;cong₂)
+open import Relation.Nullary using (Dec; _because_ ; ofⁿ; ofʸ;¬_ )
 
 
 private
@@ -20,11 +21,11 @@ private
 
 data _≤_ : {l : ℕ } → (Vec ℕ l) → (Vec ℕ  l) →  Set where
     []≤[] : [] ≤ []
-    ∷≤∷ : (a ≤ᵇ b) ≡ true → v ≤ v′ → (a ∷  v) ≤ ( b ∷  v′)
+    ∷≤∷ : a Nat.≤ b → v ≤ v′ → (a ∷  v) ≤ ( b ∷  v′)
 
 data _<_ : {l : ℕ } → (Vec ℕ l) → (Vec ℕ l) →  Set where
-       t<t :  (a ≤ᵇ b) ≡ true → v < v′ → (a ∷ v) < ( b ∷ v′)
-       h<h :  (a <ᵇ b) ≡ true → v ≤ v′ → (a ∷ v) < ( b ∷ v′)
+       t<t :  a Nat.≤ b → v < v′ → (a ∷ v) < ( b ∷ v′)
+       h<h :  a Nat.< b  → v ≤ v′ → (a ∷ v) < ( b ∷ v′)
 
 
 -- helper functions
@@ -37,69 +38,41 @@ incAt zero   (x ∷ xs)  = (suc x) ∷ xs
 incAt (suc i) (x ∷ xs) = x ∷ (incAt i xs)
 
 max : Vec ℕ  l → Vec ℕ l → Vec ℕ l 
-max  (x ∷ xs)  (y ∷ ys)  with x ≤ᵇ y 
-...                       | true   = y ∷ (max xs ys)
-...                       | false  = x ∷ (max xs ys)
+max  (x ∷ xs)  (y ∷ ys)  with x ≤? y 
+...                       | true because _  = y ∷ (max xs ys)
+...                       | false because _   = x ∷ (max xs ys)
 max [] [] = []
 
--- lemmas about ≤ᵇ and <ᵇ
-postulate
-    <ᵇ-transitive : (a <ᵇ b) ≡ true →  (b <ᵇ c) ≡ true  → (a <ᵇ c) ≡ true
-    ≤ᵇ-transitive : (a ≤ᵇ b) ≡ true →  (b ≤ᵇ c) ≡ true  →  (a ≤ᵇ c) ≡ true
-    ≤ᵇ,<ᵇ→<ᵇ : (a ≤ᵇ b) ≡ true →  (b <ᵇ c) ≡ true  →  (a <ᵇ c) ≡ true
-    <ᵇ,≤ᵇ→<ᵇ : (a <ᵇ b) ≡ true →  (b ≤ᵇ c) ≡ true  →  (a <ᵇ c) ≡ true
-    <ᵇ→≤ᵇ : (a <ᵇ b) ≡ true → (a ≤ᵇ b) ≡ true
-    ≤ᵇ→not>ᵇ :  {bl : Bool} → (a ≤ᵇ b) ≡ bl → (b <ᵇ a) ≡ not bl
-    ≤ᵇtrue,≥ᵇtrue→≡ : (a ≤ᵇ b) ≡ true → (b ≤ᵇ a) ≡ true → a ≡ b
-    ≤ᵇ-reflexive : (a ≤ᵇ a) ≡ true
-    ≤ᵇ→≤ : (a ≤ᵇ b) ≡ true → a Nat.≤ b
-    ≤→≤ᵇ : a Nat.≤ b → (a ≤ᵇ b) ≡ true 
-
-
-<ᵇ-inv-suc :  (suc a <ᵇ suc b) ≡ true → (a <ᵇ b) ≡ true
-<ᵇ-inv-suc {a} {b} lb with (suc a <ᵇ suc b) 
-... | true = refl
-≤ᵇ-inv-suc :  (suc a ≤ᵇ suc b) ≡ true → (a ≤ᵇ b) ≡ true
-≤ᵇ-inv-suc {zero} {b} refl = refl
-≤ᵇ-inv-suc {suc a} {b} leb = leb
-
-a<ᵇsa≡true : (a <ᵇ suc a) ≡ true
-a<ᵇsa≡true {zero} = refl
-a<ᵇsa≡true {suc n} =  a<ᵇsa≡true {n}
-
-a≤ᵇa≡true : (a ≤ᵇ a) ≡ true
-a≤ᵇa≡true {zero} = refl
-a≤ᵇa≡true {suc n} = a<ᵇsa≡true {n}
 
 -- lemmas about _<_ and _≤_
 
 v≤v : v ≤ v
 v≤v {_} {[]} = []≤[]
-v≤v {_} {(x ∷ xs)} = ∷≤∷ (a≤ᵇa≡true {x}) v≤v
+v≤v {_} {(x ∷ xs)} = ∷≤∷ (≤-refl) v≤v
 
 
 ≤-transitive : v ≤ v′ → v′ ≤ v″  → v ≤ v″
 ≤-transitive ([]≤[]) ([]≤[]) = []≤[]
-≤-transitive (∷≤∷ {a} {b} a≤ᵇb v≤v′) (∷≤∷ {b} {c} b≤ᵇc v′≤v″) =  ∷≤∷ (≤ᵇ-transitive  {a} {b} {c} a≤ᵇb  b≤ᵇc) (≤-transitive v≤v′ v′≤v″)
+≤-transitive (∷≤∷ {a} {b} a≤b v≤v′) (∷≤∷ {b} {c} b≤c v′≤v″) =  ∷≤∷ (≤-trans  {a} {b} {c} a≤b  b≤c) (≤-transitive v≤v′ v′≤v″)
 
 <→≤ : v < v′ → v ≤ v′
 <→≤ (t<t x y) = ∷≤∷ x (<→≤  y)
-<→≤ (h<h {a} {b}  x y) = ∷≤∷ (<ᵇ→≤ᵇ {a} {b}  x) y
+<→≤ (h<h {a} {b}  x y) = ∷≤∷ (<⇒≤ {a} {b}  x) y
 
 <-transitive : v < v′ → v′ < v″  → v < v″
-<-transitive (t<t {a} {b} a≤ᵇb  v<v′) (t<t {b} {c} b≤ᵇc  v′<v″) = t<t ( ≤ᵇ-transitive {a} {b} {c} a≤ᵇb  b≤ᵇc ) ( <-transitive  v<v′ v′<v″)
-<-transitive (t<t  {a} {b} a≤ᵇb  v<v′) (h<h  {b} {c}  b<ᵇc  v′≤v″) = h<h ( ≤ᵇ,<ᵇ→<ᵇ {a} {b} {c}  a≤ᵇb  b<ᵇc ) (≤-transitive ( <→≤  v<v′)  v′≤v″)
-<-transitive (h<h  {a} {b} a<ᵇb  v≤v′) (t<t {b} {c} b≤ᵇc  v′<v″) = h<h ( <ᵇ,≤ᵇ→<ᵇ {a} {b} {c} a<ᵇb b≤ᵇc) (≤-transitive v≤v′ ( <→≤  v′<v″))
-<-transitive (h<h  {a} {b} a<ᵇb  v≤v′) (h<h {b} {c} b<ᵇc  v′≤v″) = h<h (<ᵇ-transitive {a} {b} {c} a<ᵇb b<ᵇc) (≤-transitive v≤v′  v′≤v″)
+<-transitive (t<t {a} {b} a≤b  v<v′) (t<t {b} {c} b≤c  v′<v″) = t<t ( ≤-trans {a} {b} {c} a≤b  b≤c ) ( <-transitive  v<v′ v′<v″)
+<-transitive (t<t  {a} {b} a≤b  v<v′) (h<h  {b} {c}  b<c  v′≤v″) = h<h ( <-transʳ  {a} {b} {c}  a≤b  b<c ) (≤-transitive ( <→≤  v<v′)  v′≤v″)
+<-transitive (h<h  {a} {b} a<b  v≤v′) (t<t {b} {c} b≤c  v′<v″) = h<h ( <-transˡ {a} {b} {c} a<b b≤c) (≤-transitive v≤v′ ( <→≤  v′<v″))
+<-transitive (h<h  {a} {b} a<b  v≤v′) (h<h {b} {c} b<c  v′≤v″) = h<h (<-trans {a} {b} {c} a<b b<c) (≤-transitive v≤v′  v′≤v″)
 
 
 
 ≤,<→< : v ≤ v′ → v′ < v″  → v < v″
-≤,<→< (∷≤∷ {a} {b} a≤ᵇb  v≤v′  ) (t<t {b} {c} b≤ᵇc  v′<v″) = t<t (≤ᵇ-transitive {a} {b} {c} a≤ᵇb  b≤ᵇc) ( ≤,<→< v≤v′ v′<v″)
-≤,<→< (∷≤∷ {a} {b} a≤ᵇb  v≤v′) (h<h {b} {c} b<ᵇc  v′≤v″) = h<h (≤ᵇ,<ᵇ→<ᵇ {a} {b} {c} a≤ᵇb b<ᵇc) ( ≤-transitive v≤v′ v′≤v″)
+≤,<→< (∷≤∷ {a} {b} a≤b  v≤v′  ) (t<t {b} {c} b≤c  v′<v″) = t<t (≤-trans {a} {b} {c} a≤b  b≤c) ( ≤,<→< v≤v′ v′<v″)
+≤,<→< (∷≤∷ {a} {b} a≤b  v≤v′) (h<h {b} {c} b<c  v′≤v″) = h<h (<-transʳ {a} {b} {c} a≤b b<c) ( ≤-transitive v≤v′ v′≤v″)
 
 <→¬≤ :  v < v′ → ¬ v′ ≤ v 
-<→¬≤ {v = x ∷ xs} {v′ = y ∷ ys}  (h<h x<y _) (∷≤∷ y≤x _ ) rewrite (≤ᵇ→not>ᵇ {y}{x} y≤x) with () ← x<y 
+<→¬≤ {v = x ∷ xs} {v′ = y ∷ ys}  (h<h x<y _) (∷≤∷ y≤x _ ) with () ← (≤⇒≯ {y}{x} y≤x) x<y 
 <→¬≤ {v = x ∷ xs} {v′ = y ∷ ys}  (t<t _ xs<ys) (∷≤∷ _ ys≤xs ) = <→¬≤ xs<ys ys≤xs
 
 <-asymmetric :  v < v′ → ¬ v′ < v 
@@ -108,7 +81,7 @@ v≤v {_} {(x ∷ xs)} = ∷≤∷ (a≤ᵇa≡true {x}) v≤v
 
 <→≢ : v < v′ → v ≢ v′
 <→≢ {v = (a ∷ as)} {b ∷ bs} (t<t _ as<bs) = λ v≡v′ → (<→≢ as<bs )(cong tail v≡v′)
-<→≢ {v = (a ∷ as)} {b ∷ bs} (h<h a<ᵇb≡true _ ) = λ v≡v′ → <⇒≢ (<ᵇ⇒< a b (≡→T  a<ᵇb≡true)) ( cong head v≡v′)
+<→≢ {v = (a ∷ as)} {b ∷ bs} (h<h a<b _ ) = λ v≡v′ → <⇒≢ (a<b ) ( cong head v≡v′)
   where ≡→T : ∀ {b : Bool} → b ≡ true → T b
         ≡→T refl  =  tt
 
@@ -122,34 +95,33 @@ fillZero[l][i]≡0 {suc l} {suc i} = fillZero[l][i]≡0 {l} {i}
 
 --lemmas about incAt
 v<incAt[i,v] : v < incAt i v
-v<incAt[i,v] {_} {(x ∷ xs)} {zero} = h<h (a<ᵇsa≡true {x}) v≤v
-v<incAt[i,v] {_} {(x ∷ xs)}{(suc n)} = t<t (a≤ᵇa≡true {x}) v<incAt[i,v]
+v<incAt[i,v] {_} {(x ∷ xs)} {zero} = h<h (n<1+n x) v≤v
+v<incAt[i,v] {_} {(x ∷ xs)}{(suc n)} = t<t (≤-refl {x}) v<incAt[i,v]
 
 
 
 -- lemmas about max
+
 max-comm : max v v′ ≡ max v′ v
 max-comm {v = []} {v′ = []} = refl
 max-comm {v = x ∷ v} {v′ = y ∷ v′} 
-    with x ≤ᵇ y | y ≤ᵇ x | inspect (x ≤ᵇ_) y | inspect (y ≤ᵇ_) x
-... | false | true | _ | _  rewrite sym (max-comm {v = v} {v′ = v′}) = refl
-... | true | true | [ a ] | [ b ]
-      rewrite ≤ᵇtrue,≥ᵇtrue→≡ {x} {y} a b  
+    with x ≤? y | y ≤? x 
+... | false because _ | true because _
+      rewrite sym (max-comm {v = v} {v′ = v′}) = refl
+... | true because ofʸ x≤y | true because ofʸ y≤x 
+      rewrite ≤-antisym x≤y y≤x   
       rewrite sym (max-comm {v = v} {v′ = v′})
       = refl
-... | true | false | _ | _  rewrite sym (max-comm {v = v} {v′ = v′}) = refl
-... | false | false | [ a ] | [ b ]
-     rewrite (<ᵇ→≤ᵇ {y} {x} (≤ᵇ→not>ᵇ {x} {y} a))
-     = exp b
-  where
-      exp : ∀ {n} {x : Set n} → true ≡ false → x
-      exp ()
+... | true because _ | false because _   rewrite sym (max-comm {v = v} {v′ = v′}) = refl
+... | false because ofⁿ x≰y  | false because ofⁿ y≰x 
+     with () ← y≰x (<⇒≤ {y} {x} (≰⇒> {x} {y} x≰y ))
+     
 
 v≤max[v,v′] : v ≤ max v v′
 v≤max[v,v′] {_} {[]} {[]} = []≤[]
-v≤max[v,v′] {_} {x ∷ xs} {y ∷ ys}  with  (x ≤ᵇ_) y | inspect (x ≤ᵇ_) y
-...                                 | true | [ x≤ᵇy≡true ]  = ∷≤∷  x≤ᵇy≡true  ( v≤max[v,v′] {v = xs } {v′ = ys})
-...                                 | false | [ x≤ᵇy≡false ] = ∷≤∷ ( ≤ᵇ-reflexive {x} ) (v≤max[v,v′] {v = xs } {v′ = ys})
+v≤max[v,v′] {_} {x ∷ xs} {y ∷ ys}  with  x ≤? y 
+...                                 | true because ofʸ x≤y   = ∷≤∷  x≤y  ( v≤max[v,v′] {v = xs } {v′ = ys})
+...                                 | false because ofⁿ x≰y  = ∷≤∷ ( ≤-refl {x} ) (v≤max[v,v′] {v = xs } {v′ = ys})
 
 v≤max[v′,v] : v ≤ max v′ v
 v≤max[v′,v]  {v = v} {v′ = v′} rewrite sym (max-comm {v = v} {v′}) = v≤max[v,v′] {v = v} {v′ = v′}
@@ -181,7 +153,7 @@ i≢i′→incAt[i′,v][i]≡v[i] {suc l} {suc i} {suc i′} {x ∷ v} si≢si�
 
 
 v≤v′→v[i]≤v′[i] : v ≤ v′ → lookup v i Nat.≤ lookup v′ i
-v≤v′→v[i]≤v′[i] {v = x ∷ xs} {y ∷ ys} {zero} (∷≤∷ x≤ᵇy _ ) = ≤ᵇ→≤  x≤ᵇy
+v≤v′→v[i]≤v′[i] {v = x ∷ xs} {y ∷ ys} {zero} (∷≤∷ x≤y _ ) =   x≤y
 v≤v′→v[i]≤v′[i] {v = x ∷ xs} {y ∷ ys} {suc i} (∷≤∷ _  xs≤ys ) =  v≤v′→v[i]≤v′[i] {v = xs} {ys} {i} xs≤ys
 
 v[i]≤max[v,v′][i] : (lookup v i) Nat.≤ (lookup (max v v′) i)
@@ -190,18 +162,24 @@ v[i]≤max[v,v′][i] {v = v} { v′ = v′} = v≤v′→v[i]≤v′[i] (v≤ma
 v[i]≤max[v′,v][i] : (lookup v i) Nat.≤ (lookup (max v′ v) i)
 v[i]≤max[v′,v][i] {v = v} {v′ = v′} rewrite sym (max-comm {v = v} {v′}) = v[i]≤max[v,v′][i] {v = v} {v′ = v′}
 
-v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i] : (lookup v i  ≤ᵇ lookup v′ i) ≡ true →  lookup (max v v′ ) i ≡ lookup v′ i
-v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i]  {v = x ∷ xs} {zero} {y ∷ ys } _ with x ≤ᵇ y
-... | true  = refl 
-v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i]   {v = x ∷ xs} {suc i}  {y ∷ ys } v[i]≤ᵇv′[i] with x ≤ᵇ y
-... | false = v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i]  {v = xs} {i} {ys} v[i]≤ᵇv′[i]
-... | true = v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i]  {v = xs} {i} {ys} v[i]≤ᵇv′[i]
+v[i]≤v′[i]→max[v,v′][i]≡v′[i] : lookup v i  Nat.≤ lookup v′ i →  lookup (max v v′ ) i ≡ lookup v′ i
+v[i]≤v′[i]→max[v,v′][i]≡v′[i]  {v = x ∷ xs} {zero} {y ∷ ys } x≤y 
+    with x ≤? y
+... | true because _  = refl 
+... | false because ofⁿ x≰y  with () ← x≰y x≤y  
+v[i]≤v′[i]→max[v,v′][i]≡v′[i]   {v = x ∷ xs} {suc i}  {y ∷ ys } v[i]≤v′[i] 
+    with x ≤? y
+... | false because _ = v[i]≤v′[i]→max[v,v′][i]≡v′[i]  {v = xs} {i} {ys} v[i]≤v′[i]
+... | true  because _ = v[i]≤v′[i]→max[v,v′][i]≡v′[i]  {v = xs} {i} {ys} v[i]≤v′[i]
 
 
-v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i] : (lookup v i  ≤ᵇ lookup v′ i ) ≡ false →  lookup (max v v′ ) i ≡ lookup v i
-v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i]  {v = x ∷ xs} {zero} {y ∷ ys } _ with x ≤ᵇ y
-... | false  = refl 
-v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i]  {v = x ∷ xs} {suc i}  {y ∷ ys } v[i]≤ᵇv′[i] with x ≤ᵇ y
-... | false = v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i]  {v = xs} {i} {ys} v[i]≤ᵇv′[i]
-... | true = v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i]  {v = xs} {i} {ys} v[i]≤ᵇv′[i]
+v[i]≰v′[i]→max[v,v′][i]≡v[i] : lookup v i  ≰ lookup v′ i →  lookup (max v v′ ) i ≡ lookup v i
+v[i]≰v′[i]→max[v,v′][i]≡v[i]  {v = x ∷ xs} {zero} {y ∷ ys } x≰y 
+    with x ≤? y
+... | false because _  = refl 
+... | true because ofʸ x≤y  with () ← x≰y x≤y  
+v[i]≰v′[i]→max[v,v′][i]≡v[i]  {v = x ∷ xs} {suc i}  {y ∷ ys } v[i]≰v′[i] 
+    with x ≤? y
+... | false because _ = v[i]≰v′[i]→max[v,v′][i]≡v[i]  {v = xs} {i} {ys} v[i]≰v′[i] 
+... | true  because _ = v[i]≰v′[i]→max[v,v′][i]≡v[i]  {v = xs} {i} {ys} v[i]≰v′[i] 
 

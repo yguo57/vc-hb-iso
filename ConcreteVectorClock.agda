@@ -1,7 +1,7 @@
 open import VectorNat renaming (_<_ to _<′_;_≤_ to _≤′_)
 open import Data.Nat as Nat hiding (_<_;_<′_;_≤′_) renaming (_≤_ to _≤ⁿ_)
 open import Data.Nat.Properties as NatProp 
-open import Data.Fin as Fin hiding (_≺_ ;_+_ ;_<_;_≤_)
+open import Data.Fin as Fin hiding (_≺_ ;_+_ ;_<_;_≤_;_≤?_;_<?_)
 open import Data.Vec hiding (init)
 open import Relation.Binary.PropositionalEquality using (_≢_;_≡_;refl; subst;inspect;[_];sym;cong)
 open import Data.Empty using (⊥)
@@ -106,12 +106,12 @@ lemma2 {lp} {q} {vc} {tick vc′} p≢q v[p]≤v′[p]
   =   transitive (lemma2 p≢q  v[p]≤v′[p])  vc<tick[vc] 
 lemma2 {p} {q} {vc} {merge {q = r} vc′ vc″ } p≢q  v[p]≤v′[p]
   rewrite i≢i′→incAt[i′,v][i]≡v[i] {v = max (concrete vc′) (concrete vc″)}  p≢q
-  with (lookup (concrete vc′) p)  ≤ᵇ (lookup (concrete vc″) p) | inspect ((lookup (concrete vc′) p)  ≤ᵇ_) (lookup (concrete vc″) p) 
-... | true | [ v[p]≤ᵇv′[p] ] 
-      rewrite v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i] {v = concrete vc′} {p} {concrete vc″} v[p]≤ᵇv′[p]
+  with (lookup (concrete vc′) p)  ≤? (lookup (concrete vc″) p)
+... | true  because ofʸ v′[p]≤v″[p] 
+      rewrite v[i]≤v′[i]→max[v,v′][i]≡v′[i] {v = concrete vc′} {p} {concrete vc″} v′[p]≤v″[p] 
       =  transitive (lemma2 p≢q  v[p]≤v′[p])  vc<merge[vc′,vc]
-... | false | [ v[p]≰ᵇv′[p] ]
-      rewrite v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i] {v = concrete vc′} {p} {concrete vc″} v[p]≰ᵇv′[p]
+... | false because ofⁿ v′[p]≰v″[p] 
+      rewrite v[i]≰v′[i]→max[v,v′][i]≡v[i] {v = concrete vc′} {p} {concrete vc″} v′[p]≰v″[p] 
       with  p Fin.≟ r
 ...   | false because  ofⁿ  p≢r
         = transitive (lemma2 p≢r v[p]≤v′[p])  vc<merge[vc,vc′]
