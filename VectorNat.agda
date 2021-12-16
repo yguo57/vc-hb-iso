@@ -2,18 +2,14 @@ module VectorNat where
 open import Data.Vec hiding (init)
 open import Data.Nat as Nat hiding (_<_;_≤_) 
 open import Data.Nat.Properties
-open import Data.Fin  hiding (_≺_ ;_+_ ;_<_;_≤_;_≟_;pred)
-open import Data.Bool hiding (_<_;_≤_;_≟_)
+open import Data.Fin  hiding (_≺_ ;_+_ ;_<_;_≤_;_≟_;pred;_≤?_)
+open import Data.Bool hiding (_<_;_≤_;_≟_;_≤?_)
 open import Data.Product
 open import Relation.Nullary using (¬_)
 open import Data.Empty using (⊥)
 open import Data.Unit using (⊤; tt)
 open import Relation.Nullary.Decidable using (⌊_⌋)
 open import Relation.Binary.PropositionalEquality using (_≡_;_≢_;refl;inspect;[_];subst;sym;cong;cong₂)
-
-
-
-
 
 
 private
@@ -59,10 +55,6 @@ postulate
     ≤ᵇ→≤ : (a ≤ᵇ b) ≡ true → a Nat.≤ b
     ≤→≤ᵇ : a Nat.≤ b → (a ≤ᵇ b) ≡ true 
 
-<ᵇ-irreflexive : (a <ᵇ b) ≡ true →  (b <ᵇ a) ≡ true → ⊥
-<ᵇ-irreflexive {a} {b} eq₁ eq₂ with contra  ← ≤ᵇ→not>ᵇ {a} {b} (<ᵇ→≤ᵇ {a} {b} eq₁ ) | b <ᵇ a
-... | false with () ← eq₂ 
-... | true with () ← contra
 
 <ᵇ-inv-suc :  (suc a <ᵇ suc b) ≡ true → (a <ᵇ b) ≡ true
 <ᵇ-inv-suc {a} {b} lb with (suc a <ᵇ suc b) 
@@ -123,9 +115,9 @@ v≤v {_} {(x ∷ xs)} = ∷≤∷ (a≤ᵇa≡true {x}) v≤v
 
 -- lemmas about fillZero
 
-fillZero[l][p]≡0 :  lookup (fillZero l) i ≡ 0
-fillZero[l][p]≡0 {suc l} {zero} = refl
-fillZero[l][p]≡0 {suc l} {suc i} = fillZero[l][p]≡0 {l} {i}
+fillZero[l][i]≡0 :  lookup (fillZero l) i ≡ 0
+fillZero[l][i]≡0 {suc l} {zero} = refl
+fillZero[l][i]≡0 {suc l} {suc i} = fillZero[l][i]≡0 {l} {i}
 
 
 --lemmas about incAt

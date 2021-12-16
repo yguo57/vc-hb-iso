@@ -1,14 +1,12 @@
-open import VectorNat renaming (_<_ to _<′_;_≤_ to _≤′_;<-asymmetric to <′-asymmetric)
+open import VectorNat renaming (_<_ to _<′_;_≤_ to _≤′_)
 open import Data.Nat as Nat hiding (_<_;_<′_;_≤′_) renaming (_≤_ to _≤ⁿ_)
-open import Data.Nat.Properties as NatProp using (<⇒≱;≤⇒≯;≤⇒≤ᵇ;≤-trans)
+open import Data.Nat.Properties as NatProp 
 open import Data.Fin as Fin hiding (_≺_ ;_+_ ;_<_;_≤_)
-open import Data.List.Membership.Propositional using (_∈_)
 open import Data.Vec hiding (init)
 open import Relation.Binary.PropositionalEquality using (_≢_;_≡_;refl; subst;inspect;[_];sym;cong)
 open import Data.Empty using (⊥)
 open import Data.Sum
 open import Data.Product
-open import Data.List.NonEmpty as NonEmpty using (_∷⁺_;List⁺;toList)
 open import Data.Bool using (true;false)
 open import Relation.Nullary using (Dec; _because_ ; ofⁿ; ofʸ;¬_ )
 
@@ -26,7 +24,6 @@ private
     vc  : VC p
     vc′ : VC q
     vc″ : VC r
-    h : List⁺ (VC p)
  
 
 
@@ -70,7 +67,7 @@ vc<ᶜmerge[vc′,vc] {vc′ = vc′}  =  v<ᶜv  (≤,<→< (v≤max[v′,v] {v
 
 
   
-<→<ᶜ : (vc < vc′) → (vc <ᶜ vc′)
+<→<ᶜ : vc < vc′ → vc <ᶜ vc′
 <→<ᶜ vc<tick[vc] = vc<ᶜtick[vc]
 <→<ᶜ vc<merge[vc,vc′] = vc<ᶜmerge[vc,vc′]
 <→<ᶜ vc<merge[vc′,vc] = vc<ᶜmerge[vc′,vc]
@@ -99,13 +96,12 @@ lemma1 {p} {vc} {vc′} v[p]≤v′[p]  with processTotalOrder vc vc′
 
 
 lemma2 : {vc : VC p} {vc′ : VC q}  → p ≢ q → (lookup (concrete vc) p)  ≤ⁿ (lookup (concrete vc′) p) →  vc < vc′
-lemma2 {zero} {zero} {vc} {vc′}  p≢q v[p]≤v′[p]  with () ← p≢q refl
 lemma2 {p} {q} {vc} {init}  p≢q v[p]≤v′[p]
   rewrite i≢i′→incAt[i′,v][i]≡v[i] {v = fillZero (suc l)}  p≢q 
-  rewrite fillZero[l][p]≡0 {suc l} {p}
+  rewrite fillZero[l][i]≡0 {suc l} {p}
   rewrite proj₂ (∃v[concrete[vc]≡incAt[v,p]] {p} {vc})
   with () ← (≤⇒≯  v[p]≤v′[p]) (0<incAt[i,v][i] {suc l} {p} { proj₁ (∃v[concrete[vc]≡incAt[v,p]] {p} {vc})})
-lemma2 {p} {q} {vc} {tick vc′} p≢q v[p]≤v′[p]
+lemma2 {lp} {q} {vc} {tick vc′} p≢q v[p]≤v′[p]
   rewrite i≢i′→incAt[i′,v][i]≡v[i] {v = concrete vc′}  p≢q 
   =   transitive (lemma2 p≢q  v[p]≤v′[p])  vc<tick[vc] 
 lemma2 {p} {q} {vc} {merge {q = r} vc′ vc″ } p≢q  v[p]≤v′[p]
@@ -115,24 +111,24 @@ lemma2 {p} {q} {vc} {merge {q = r} vc′ vc″ } p≢q  v[p]≤v′[p]
       rewrite v[i]≤ᵇv′[i]→max[v,v′][i]≡v′[i] {v = concrete vc′} {p} {concrete vc″} v[p]≤ᵇv′[p]
       =  transitive (lemma2 p≢q  v[p]≤v′[p])  vc<merge[vc′,vc]
 ... | false | [ v[p]≰ᵇv′[p] ]
-        with  p Fin.≟ r
-...     | false because  ofⁿ  p≢r
-          rewrite v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i] {v = concrete vc′} {p} {concrete vc″} v[p]≰ᵇv′[p]
-          = transitive (lemma2 p≢r v[p]≤v′[p])  vc<merge[vc,vc′]
-...     | true because   ofʸ p≡r
-          rewrite  v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i]  {v = concrete vc′} {p} {concrete vc″} v[p]≰ᵇv′[p]
-          rewrite  sym p≡r
-            with lemma1 {vc = vc} {vc′ = vc′} v[p]≤v′[p]
-...         | inj₁ vc<vc′ = transitive vc<vc′ vc<merge[vc,vc′]
-...         | inj₂ vc≡vc′  rewrite vc≡vc′ =  vc<merge[vc,vc′]
+      rewrite v[i]≰ᵇv′[i]→max[v,v′][i]≡v[i] {v = concrete vc′} {p} {concrete vc″} v[p]≰ᵇv′[p]
+      with  p Fin.≟ r
+...   | false because  ofⁿ  p≢r
+        = transitive (lemma2 p≢r v[p]≤v′[p])  vc<merge[vc,vc′]
+...   | true because   ofʸ p≡r
+        rewrite  sym p≡r
+          with lemma1 {vc = vc} {vc′ = vc′} v[p]≤v′[p]
+...       | inj₁ vc<vc′ = transitive vc<vc′ vc<merge[vc,vc′]
+...       | inj₂ vc≡vc′  rewrite vc≡vc′ =  vc<merge[vc,vc′]
 
 
 
 
-<ᶜ→< : vc <ᶜ vc′ → (vc < vc′) 
+<ᶜ→< : vc <ᶜ vc′ → vc < vc′
 <ᶜ→<  {p} {vc} {q} {vc′} (v<ᶜv  v<′v′) with p Fin.≟ q
 ... | false because ofⁿ  p≢q  = lemma2 p≢q  ( v≤v′→v[i]≤v′[i] (<→≤  v<′v′))
 ... | true because  ofʸ p≡q rewrite p≡q
       with lemma1  ( v≤v′→v[i]≤v′[i]  (<→≤  v<′v′))
 ...   | inj₁ vc<vc′ = vc<vc′
 ...   | inj₂ vc≡vc′  with () ← (<→≢ v<′v′)(cong concrete vc≡vc′)
+  
