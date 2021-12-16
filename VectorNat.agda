@@ -4,9 +4,8 @@ open import Data.Nat as Nat hiding (_<_;_≤_)
 open import Data.Nat.Properties as NatProp
 open import Data.Fin  hiding (_≺_ ;_+_ ;_<_;_≤_;_≟_;pred;_≤?_)
 open import Data.Bool hiding (_<_;_≤_;_≟_;_≤?_)
-open import Data.Product
+open import Data.Product using (_×_;∃-syntax;_,_;proj₁;proj₂)
 open import Relation.Nullary using (¬_)
-open import Data.Empty using (⊥)
 open import Data.Unit using (⊤; tt)
 open import Relation.Nullary.Decidable using (⌊_⌋)
 open import Relation.Binary.PropositionalEquality using (_≡_;_≢_;refl;inspect;[_];subst;sym;cong;cong₂)
