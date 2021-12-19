@@ -27,7 +27,7 @@ data _<_ : {l : ℕ } → (Vec ℕ l) → (Vec ℕ l) →  Set where
        h<h :  a Nat.< b  → v ≤ v′ → (a ∷ v) < ( b ∷ v′)
 
 
--- helper functions
+-- vector helper functions 
 fillZero : (l : ℕ)  → Vec ℕ l 
 fillZero zero = [] 
 fillZero (suc m) =  0 ∷ (fillZero m)
