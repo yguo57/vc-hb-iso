@@ -44,7 +44,7 @@ postulate
 
 With the axiom in place, I split ```<ᶜ→< : vc <ᶜ vc′ → vc < vc′``` into two cases: first when the two VCs are from the same process, so ```processTotalOrder``` can be used, and second when the two VCs are from different processes. 
 
-For the first case,  processTotalOrder states limits the relationship between ```vc``` and ```vc′``` into three possibilities, but given ``` vc <ᶜ vc′```, I can prove that ```vc′ < vc``` is imposssible. (lemma1)
+For the first case,  processTotalOrder limits the relationship between ```vc``` and ```vc′``` into three possibilities, but given ``` vc <ᶜ vc′```, I can prove that ```vc′ < vc``` is imposssible. (lemma1)
 ```
 lemma1  :   {vc : VC p} {vc′ : VC q} → vc < vc′  →  (lookup (concrete vc) q) Nat.< (lookup (concrete vc′) q)
 lemma1 {p} {q} {vc} {tick vc}  vc<tick[vc]
@@ -58,9 +58,9 @@ lemma1  {p} {q} {vc} {merge vc′ vc″} vc<merge[vc′,vc]
   = s≤s (v[i]≤max[v′,v][i] {v = concrete vc} {q} {concrete vc′})
 lemma1  {p} {q} {vc} {vc″} (transitive x y) = NatProp.<-transʳ (v≤v′→v[i]≤v′[i] (<→≤ (<ᶜ→<ᵛ  (<→<ᶜ x)))) (lemma1 y)
 ```
-Essentially, ```vc′ < vc``` implies that  ``` vc```  is constructed from ``` vc′``` by a number of ticks and merges, each of which increments its value at p (the index of vc and vc′) , so vc should be greater than vc′ at p  but ``` vc <ᶜ vc′```  implies that ``` vc′``` is greater or equal than ```vc``` at all indexes, which implies  ``` vc′``` is greater or equal than ```vc``` at its index p, including p - a contradiction. 
+Essentially, ```vc′ < vc``` implies that  ``` vc```  is constructed from ``` vc′``` by a sequence of ticks and merges, each of which increments its value at p (the index of vc and vc′) , so vc should be greater than vc′ at p  but ``` vc <ᶜ vc′```  implies that ``` vc′``` is greater or equal than ```vc``` at all indexes, which implies  ``` vc′``` is greater or equal than ```vc``` at its index p, including p - a contradiction. 
 
-I use this weaker statement ```(lookup (concrete vc) q)  Nat.≤ (lookup (concrete vc′) q)``` as the premise for lemma2. Now  the possible relationships between  ```vc``` and ```vc′``` can be narrowed down into two -  ``` vc < vc′ ⊎ vc ≡ vc′ ``` when they are on the same process. Since ``` __<ᶜ_ ``` is irreflexive, we do not need to worry about ```vc ≡ vc′``` (lemma2)
+I use this weaker statement ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′) p)``` as the premise for lemma2. Now  the possible relationships between  ```vc``` and ```vc′``` can be narrowed down into two -  ``` vc < vc′ ⊎ vc ≡ vc′ ``` when they are on the same process. Since ``` __<ᶜ_ ``` is irreflexive, we do not need to worry about ```vc ≡ vc′``` (lemma2)
 ```
 lemma2 : {vc vc′ : VC p}   →  (lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′) p) →  vc < vc′ ⊎ vc ≡  vc′ 
 lemma2 {p} {vc} {vc′} v[p]≤v′[p]  
@@ -70,9 +70,9 @@ lemma2 {p} {vc} {vc′} v[p]≤v′[p]
 ... | inj₂ (inj₁ vc>vc′) with () ←  (<⇒≱  (lemma1 vc>vc′))  v[p]≤v′[p] 
 ```
 
-Similarly, when vc and vc′ are from different processes (call them p and q), only a weaker premise about a single index that is implied by ``` vc <ᶜ vc′```. In this case it's ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′) p)``` where p is the index of the smaller vc. Now consider all possible values for ```  vc′ ```
+Similarly, when vc and vc′ are from different processes (call them p and q), only a weaker premise about a single index implied by ``` vc <ᶜ vc′``` is necessary. In this case it is ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′) p)``` where p is the index of the smaller ```vc```. Now consider all possible values for ```  vc′ ```
 
-1. when  ```  vc′ = init ```, then concrete vc′ has zero on all indices except q, so lookup (concrete vc′) p = 0, but lookup (concrete vc) p = 1, so ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′) p)``` leads to a contradiction 
+1. when  ```  vc′ = init ```, then ```concrete vc′``` has zero on all indices except q, so ```lookup (concrete vc′) p = 0```, but ```lookup (concrete vc) p = 1```, so ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′) p)``` leads to a contradiction 
 ```
 lemma3 : {vc : VC p} {vc′ : VC q}  → p ≢ q → (lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′) p) →  vc < vc′
 lemma3 {p} {q} {vc} {init}  p≢q v[p]≤v′[p]
@@ -82,13 +82,13 @@ lemma3 {p} {q} {vc} {init}  p≢q v[p]≤v′[p]
   with () ← (≤⇒≯  v[p]≤v′[p]) (0<incAt[i,v][i] {suc l} {p} { proj₁ (∃v[concrete[vc]≡incAt[v,p]] {p} {vc})})
 ```
 
-2. when ``` vc′ = tick  vc′```, the premise becomes ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete (tick vc′)) p)``` . Note that concrete (tick  vc′) only increments concrete ( vc′) on index q, leaving index p untouched, so ``` lookup (concrete (tick  vc′)) p  ≡ lookup (concrete vc′) p ```  and therefore ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′) p)```. By  induction, ```vc <  vc′'``` ̄, and then by transitivity ```vc < tick vc′ ```
+2. when ``` vc′ = tick  vc′```, the premise becomes ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete (tick vc′)) p)``` . Note that ```concrete (tick  vc′)``` only increments on index q compared to  ```concrete ( vc′)```, leaving index p untouched, so ``` lookup (concrete (tick  vc′)) p  ≡ lookup (concrete vc′) p ```  and therefore ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′) p)```. By  induction, ```vc <  vc′'``` ̄, and then by transitivity ```vc < tick vc′ ```
 ```
 lemma3 {lp} {q} {vc} {tick vc′} p≢q v[p]≤v′[p]
   rewrite i≢i′→incAt[i′,v][i]≡v[i] {v = concrete vc′}  p≢q 
   =   transitive (lemma3 p≢q  v[p]≤v′[p])  vc<tick[vc] 
 ```
-3. When  ```vc′ = merge vc″ vc′``` where  vc″ is on process r, the premise becomes ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete (merge vc vc′)) p)```.  A merge involves a pointwise maximum , which means between ```vc ``` and ```vc′```,  only the one with the greater value on p will contribute to the value on p after the merge. 
+3. When  ```vc′ = merge vc″ vc′``` where  ```vc″``` is on process r, the premise becomes ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete (merge vc vc′)) p)```.  A merge involves a pointwise maximum , which means between ```vc ``` and ```vc′```,  only the one with the greater value on p will contribute to the value on p after the merge. 
 ```
    lemma3 {p} {q} {vc} {merge {q = r} vc′ vc″ } p≢q  v[p]≤v′[p]
    rewrite i≢i′→incAt[i′,v][i]≡v[i] {v = max (concrete vc′) (concrete vc″)}  p≢q
