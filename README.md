@@ -16,7 +16,7 @@ that converts an abstract VC into its vector clock values. I also call this vect
 Note that for each VC the index representing their own process starts at 1 (so if vc is of type VC 0, concrete vc = [1,0,0,...]). This is to prevent an initial ConcreteVC value from being less than all other clock values (because [0,0,...0] is less than all other vectors ), which might have no happens-before relation with it.
 
 
-Then concrete VC less ```_<ᶜ_```then is defined as a wrapper around component wise comparison (```_<ᵛ_```) of two vectors generated from VCs
+Then concrete VC less than ```_<ᶜ_``` is defined as a wrapper around component wise comparison (```_<ᵛ_```) of two vectors generated from VCs
 ```
 data _<ᶜ_ : VC p → VC q → Set where
   crt<crt  : (concrete vc) <ᵛ (concrete vc′) → vc <ᶜ vc′
@@ -95,41 +95,41 @@ lemma3 {lp} {q} {vc} {tick vc′} p≢q v[p]≤v′[p]
      with (lookup (concrete vc′) p)  ≤? (lookup (concrete vc″) p)
 ```
    
-   1. If it is ```vc′``` , then we have ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′)) p)```. By induction ```vc <  vc′```, and by transitivity  ``` vc < merge  vc″ vc′  v ```
-   ```
-     ... | true  because ofʸ v′[p]≤v″[p] 
-       rewrite v[i]≤v′[i]→max[v,v′][i]≡v′[i] {v = concrete vc′} {p} {concrete vc″} v′[p]≤v″[p] 
-       =  transitive (lemma3 p≢q  v[p]≤v′[p])  vc<merge[vc′,vc]
-   ```
-   2. If it is  ``` vc″```, there are two further cases
-   ```
-   ... | false because ofⁿ v′[p]≰v″[p] 
-      rewrite v[i]≰v′[i]→max[v,v′][i]≡v[i] {v = concrete vc′} {p} {concrete vc″} v′[p]≰v″[p] 
-      with  p Fin.≟ r
-   ```
-      1. If  ``` vc″``` and ```vc``` are from different processes (```p≢r```), then it is the mirror image of the above -  by induction ```vc <  vc″```, and by transitivity ```vc < merge  vc″ vc′ ```
-      ```
-      ...   | false because  ofⁿ  p≢r
-        = transitive (lemma3 p≢r v[p]≤v′[p])  vc<merge[vc,vc′]
-      ```
-      2. If  ``` vc″``` and  ```vc``` are from the same processes (```p≡r```), then lemma2 is applicable , yielding two more cases
-      ```
-      ...   | true because   ofʸ p≡r
-        rewrite  sym p≡r
-          with lemma2 {vc = vc} {vc′ = vc′} v[p]≤v′[p]
-      ```
-         1. If vc<vc′, then by transitivity ```vc < merge  vc″ vc′ ``` 
-         ```
-         ...       | inj₁ vc<vc′ = transitive vc<vc′ vc<merge[vc,vc′]
-         ```
-         2. If vc≡vc′. Obviously  ``` vc′ < merge vc″ vc′  ```
-         ```
-         ...       | inj₁ vc<vc′ = transitive vc<vc′ vc<merge[vc,vc′]
-         ```
+   a. If it is ```vc′``` , then we have ```(lookup (concrete vc) p)  Nat.≤ (lookup (concrete vc′)) p)```. By induction ```vc <  vc′```, and by transitivity  ``` vc < merge  vc″ vc′  v ```
+```
+ ... | true  because ofʸ v′[p]≤v″[p] 
+   rewrite v[i]≤v′[i]→max[v,v′][i]≡v′[i] {v = concrete vc′} {p} {concrete vc″} v′[p]≤v″[p] 
+   =  transitive (lemma3 p≢q  v[p]≤v′[p])  vc<merge[vc′,vc]
+```
+   b. If it is  ``` vc″```, there are two further cases
+```
+... | false because ofⁿ v′[p]≰v″[p] 
+  rewrite v[i]≰v′[i]→max[v,v′][i]≡v[i] {v = concrete vc′} {p} {concrete vc″} v′[p]≰v″[p] 
+  with  p Fin.≟ r
+```
+i. If  ``` vc″``` and ```vc``` are from different processes (```p≢r```), then it is the mirror image of the above -  by induction ```vc <  vc″```, and by transitivity ```vc < merge  vc″ vc′ ```
+```
+...   | false because  ofⁿ  p≢r
+  = transitive (lemma3 p≢r v[p]≤v′[p])  vc<merge[vc,vc′]
+```
+ii. If  ``` vc″``` and  ```vc``` are from the same processes (```p≡r```), then lemma2 is applicable , yielding two more cases
+```
+...   | true because   ofʸ p≡r
+  rewrite  sym p≡r
+    with lemma2 {vc = vc} {vc′ = vc′} v[p]≤v′[p]
+```
+A. If``` vc < vc′```, then by transitivity ```vc < merge  vc″ vc′ ``` 
+```
+...       | inj₁ vc<vc′ = transitive vc<vc′ vc<merge[vc,vc′]
+```
+B. If ```vc ≡ vc′```, obviously  ``` vc′ < merge vc″ vc′  ```
+```
+...       | inj₁ vc<vc′ = transitive vc<vc′ vc<merge[vc,vc′]
+```
 
 This concludes the case where vc and vc′ are from different processes (lemma3)
 
-Combining lemma2 and lemma3 gives a complete proof of ``` vc <ᶜ vc′ → vc < vc′ ```
+Combining lemma2 and lemma3 gives a complete proof of ``` vc <ᶜ vc′ → vc < vc′ ```, regardless of whether ```vc``` and ```vc′``` are from the same process
 ```
 <ᶜ→< : vc <ᶜ vc′ → vc < vc′
 <ᶜ→<  {p} {vc} {q} {vc′} (crt<crt v<ᵛv′) 
