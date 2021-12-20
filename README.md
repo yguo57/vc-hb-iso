@@ -33,7 +33,8 @@ The other direction is trickier. Due to how  VC is defined, a [contradiction](ht
 Such cases need to be exlcluded. One intuitive way is to explicitly define an execution that eliminates anormalies like this, but how should an execution be defined? If we think about what makes at an execution "normal" ,  there are two obvious conditions (there are more, for example each receive event should pair with a send event from another process, but they are not needed for the proof)
 1. the set of all events (and thus their VCs) forms a irreflexive partial order
 2. the set of all events on the same process forms a total order
-    In fact, 1 is taken care of by the definition of event (and this also holds for the abstract VC that is ismorphic to it) as proven here, leaving only 2, and it is precisely 2 that is being violated in the counterexample above. To solve this problem without going through the trouble of creatinig an appropriate data structure for execution, I simply define 2 as a postulate
+
+In fact, 1 is taken care of by the definition of event (and this also holds for the abstract VC that is ismorphic to it) as proven here, leaving only 2, and it is precisely 2 that is being violated in the counterexample above. To solve this problem without going through the trouble of creatinig an appropriate data structure for execution, I simply define 2 as a postulate
     
 ```
 postulate
