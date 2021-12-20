@@ -28,8 +28,9 @@ Because the isomorphism abstract VC less-than and happens-before is already prov
 ```
 The implication from abstract to concrete VC less-than is straightforward: properties of nat vectors can be used to prove theorems about ```_<ᶜ_``` that correspond to each of ```_<_```'s constructors, as shown [here](https://github.com/yguo57/vc-hb-iso/blob/f215f96b8c4ed660306fb2833433e432ea5aa629/ConcreteVectorClock.agda#L52-L74). 
 
-The other direction is trickier. Due to how  VC is defined, a [contradiction](https://github.com/yguo57/vc-hb-iso/blob/f215f96b8c4ed660306fb2833433e432ea5aa629/Contradiction.agda#L39-L45) can be derived where for VCs D and E, ¬D<E but D<ᶜE. 
-Therefore I need to prevent such cases from happening. One intuitive way is to explicitly define an execution that eliminates anormalies like this, but how should an execution be defined? If we think about what makes at an execution "normal" ,  there are two obvious conditions (there are more, for example each receive event should pair with a send event from another process, but they are not needed for the proof)
+The other direction is trickier. Due to how  VC is defined, a [contradiction](https://github.com/yguo57/vc-hb-iso/blob/f215f96b8c4ed660306fb2833433e432ea5aa629/Contradiction.agda#L39-L45) can be derived, where for VCs D and E, ¬D<E but D<ᶜE. 
+
+Such cases need to be exlcluded. One intuitive way is to explicitly define an execution that eliminates anormalies like this, but how should an execution be defined? If we think about what makes at an execution "normal" ,  there are two obvious conditions (there are more, for example each receive event should pair with a send event from another process, but they are not needed for the proof)
 1. the set of all events (and thus their VCs) forms a irreflexive partial order
 2. the set of all events on the same process forms a total order
     In fact, 1 is taken care of by the definition of event (and this also holds for the abstract VC that is ismorphic to it) as proven here, leaving only 2, and it is precisely 2 that is being violated in the counterexample above. To solve this problem without going through the trouble of creatinig an appropriate data structure for execution, I simply define 2 as a postulate
